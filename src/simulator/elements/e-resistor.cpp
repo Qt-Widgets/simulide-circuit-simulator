@@ -23,6 +23,7 @@
 eResistor::eResistor( std::string id ) : eElement( id )
 {
     m_resist = 100;
+    m_admit  = 1/m_resist;
     m_current = 0;
     m_ePin.resize(2);
 }
@@ -38,9 +39,9 @@ void eResistor::initialize()
 
 void eResistor::stamp()
 {
-    double admit = 1/m_resist;
-    m_ePin[0]->stampAdmitance( admit );
-    m_ePin[1]->stampAdmitance( admit );
+    //double admit = 1/m_resist;
+    m_ePin[0]->stampAdmitance( m_admit );
+    m_ePin[1]->stampAdmitance( m_admit );
     //qDebug() << "eResistor::stamp" << m_resist;
 }
 
@@ -49,7 +50,14 @@ double eResistor::res() { return m_resist; }
 void eResistor::setRes( double resist )
 {
     if( resist<1e-9 ) resist = 1e-9;
+    m_admit = 1/resist;
     m_resist = resist;
+    stamp();
+}
+
+void eResistor::setAdmit( double admit )
+{
+    m_admit = admit;
     stamp();
 }
 
@@ -74,9 +82,10 @@ void eResistor::updateVI()
     if( m_ePin[0]->isConnected() && m_ePin[1]->isConnected() )
     {
         double volt = m_ePin[0]->getVolt()-m_ePin[1]->getVolt();
-        //if( volt < 0 ) volt = -volt;
+
         m_current = volt/m_resist;
-        //qDebug() << " current " <<m_current<<volt<<m_deltaV;
+        //qDebug() << " current " <<m_current<<volt;
     }
     else m_current = 0;
 }
+

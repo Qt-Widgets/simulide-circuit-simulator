@@ -4,7 +4,7 @@
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
+ *   the Free Software Foundation; either version 3 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
  *   This program is distributed in the hope that it will be useful,       *
@@ -23,10 +23,11 @@
 #include <QtGui>
 #include <QDomDocument>
 
-#include "QPropertyEditorWidget.h"
-//#include "editorwindow.h"
+#include "propertieswidget.h"
 #include "componentselector.h"
 #include "circuitwidget.h"
+#include "filebrowser.h"
+#include "editorwindow.h"
 
 class MAINMODULE_EXPORT MainWindow : public QMainWindow
 {
@@ -37,54 +38,38 @@ class MAINMODULE_EXPORT MainWindow : public QMainWindow
         ~MainWindow();
 
  static MainWindow* self() { return m_pSelf; }
-        
-        void setRate( int rate );
 
-        QSettings* settings() { return &m_settings; }
+        QSettings* settings();
 
         void loadPlugins();
         void unLoadPugin( QString pluginName );
         
         void readSettings();
-
-        QTabWidget*   m_sidepanel;
-        QSplitter*    m_Centralsplitter;
-        QWidget*      m_ramTabWidget;
-        QGridLayout*  m_ramTabWidgetLayout;
-        QToolBar*     m_circToolBar;
         
-        QPropertyEditorWidget* m_itemprop;
-        //EditorWindow* m_editorWindow;
-
-    public slots:
-        void powerCircOn();
-        void powerCircOff();
-
-        void openCirc();
-        void newCircuit();
-        void saveCirc();
-        bool saveCircAs();
+        void setTitle( QString title );
+        
+        QTabWidget*  m_sidepanel;
+        QWidget*     m_ramTabWidget;
+        QGridLayout* m_ramTabWidgetLayout;
 
     protected:
         void closeEvent(QCloseEvent* event);
 
     private slots:
         void about();
-        void powerCirc();
-        void openInfo();
 
     private:
 
  static MainWindow* m_pSelf;
+ 
+        void loadPluginsAt( QDir pluginsDir );
 
         bool m_blocked;
 
         void createWidgets();
-        void createActions();
         void createMenus();
         void createToolBars();
         void writeSettings();
-
         void applyStile();
         
         QSettings m_settings;
@@ -92,37 +77,15 @@ class MAINMODULE_EXPORT MainWindow : public QMainWindow
         QString m_version;
         QString m_styleSheet;
 
-        QString     m_curCirc;
-        QString     m_lastCircDir;
-        QStringList m_docList;
-        //QStringList m_plugins;
         QHash<QString, QPluginLoader*>  m_plugins;
-
-        CircuitWidget* m_circuit;
-        QLabel*        m_rateLabel; 
-
-        ComponentSelector* components;
-
-        QLineEdit m_findLabel;
-
-
-
-        QAction* exitAct;
-        QAction* aboutAct;
-        QAction* aboutQtAct;
-
-        QAction* stepAct;
-        QAction* runAct;
-        QAction* pauseAct;
-        QAction* resetAct;
-        QAction* stopAct;
-
-        QAction* newCircAct;
-        QAction* openCircAct;
-        QAction* saveCircAct;
-        QAction* saveCircAsAct;
-        QAction* powerCircAct;
-        QAction* infoAct;
+        
+        CircuitWidget*      m_circuit;
+        ComponentSelector*  m_components;
+        PropertiesWidget*   m_itemprop;
+        EditorWindow*       m_editor;
+        
+        QSplitter*   m_Centralsplitter;
+        FileBrowser* m_fileSystemTree;
 };
 
 #endif

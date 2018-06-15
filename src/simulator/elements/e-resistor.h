@@ -30,6 +30,7 @@ class MAINMODULE_EXPORT eResistor : public eElement
 
         virtual double res();
         virtual void setRes( double resist );
+        virtual void setAdmit( double admit );
         virtual void setResSafe( double resist );
 
         double current();
@@ -41,9 +42,9 @@ class MAINMODULE_EXPORT eResistor : public eElement
         virtual void updateVI();
 
         double m_resist;
+        double m_admit;
         double m_current;
 };
 
 #endif
-
 

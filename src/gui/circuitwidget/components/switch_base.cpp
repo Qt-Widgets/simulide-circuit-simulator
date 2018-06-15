@@ -4,7 +4,7 @@
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
+ *   the Free Software Foundation; either version 3 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
  *   This program is distributed in the hope that it will be useful,       *
@@ -18,30 +18,18 @@
  ***************************************************************************/
 
 #include "switch_base.h"
-#include "connector.h"
 #include "circuit.h"
 
 SwitchBase::SwitchBase( QObject* parent, QString type, QString id )
     : Component( parent, type, id )
     , eElement( id.toStdString() )
 {
-    m_area =  QRectF( -11, -9, 22, 11 );
+    m_area =  QRectF( 0,0,0,0 );
 
-    m_pin.resize(2);
     m_ePin.resize(2);
 
     m_changed = true;
     m_closed = false;
-
-    QString pinid = m_id;
-    pinid.append(QString("-lnod"));
-    QPoint pinpos = QPoint(-8-8,0);
-    m_ePin[0] = new Pin( 180, pinpos, pinid, 0, this);
-
-    pinid = m_id;
-    pinid.append(QString("-rnod"));
-    pinpos = QPoint(8+8,0);
-    m_ePin[1] = new Pin( 0, pinpos, pinid, 1, this);
 
     m_idLabel->setPos(-12,-24);
 
@@ -62,10 +50,15 @@ SwitchBase::~SwitchBase()
 
 void SwitchBase::initialize()
 {
-    m_ePin[0]->setEnodeComp( m_ePin[1]->getEnode() );
-    m_ePin[1]->setEnodeComp( m_ePin[0]->getEnode() );
-    m_ePin[0]->stampAdmitance( 1 ); // Restart circuit afther switch closed issue
-    m_ePin[1]->stampAdmitance( 1 );
+    eNode* node0 = m_ePin[0]->getEnode();
+    eNode* node1 = m_ePin[1]->getEnode();
+    
+    if( node0 ) node0->setSwitched( true );
+    if( node1 ) node1->setSwitched( true );
+    
+    m_ePin[0]->setEnodeComp( node1 );
+    m_ePin[1]->setEnodeComp( node0 );
+
     m_changed = true;
     updateStep();
 }
@@ -74,7 +67,7 @@ void SwitchBase::updateStep()
 {
     if( m_changed )
     {
-        double admit = 1e-6;
+        double admit = 0;
 
         if( m_closed ) admit = 1e3;
 
@@ -85,13 +78,16 @@ void SwitchBase::updateStep()
     }
 }
 
+void SwitchBase::setButtonText( QString text )
+{
+    m_button->setText( text );
+}
+
 void SwitchBase::remove()
 {
-    if( m_ePin[0]->isConnected() ) (static_cast<Pin*>(m_ePin[0]))->connector()->remove();
-    if( m_ePin[1]->isConnected() ) (static_cast<Pin*>(m_ePin[1]))->connector()->remove();
-
     Simulator::self()->remFromUpdateList( this );
 
     Component::remove();
 }
 
+#include "moc_switch_base.cpp"

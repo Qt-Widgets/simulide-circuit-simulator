@@ -4,7 +4,7 @@
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
+ *   the Free Software Foundation; either version 3 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
  *   This program is distributed in the hope that it will be useful,       *
@@ -22,15 +22,18 @@
 #include "connector.h"
 #include "circuit.h"
 #include "utils.h"
+#include "simuapi_apppath.h"
 
 int Component::m_error = 0;
+QString Component::m_noHelpMsg = "Sorry... no Help Available";
 
 Component::Component( QObject* parent , QString type, QString id )
     : QObject(parent), QGraphicsItem()
     ,multUnits( "TGMk munp" )
 {
     //setCacheMode(QGraphicsItem::DeviceCoordinateCache);
-    
+
+    m_help = &m_noHelpMsg;
     m_unitMult = 1;
     m_Hflip  = 1;
     m_Vflip  = 1;
@@ -57,7 +60,6 @@ Component::Component( QObject* parent , QString type, QString id )
     setObjectName( id );
     setId(id);
 
-    //setToolTip( QString("Left-Click and Move this Component \nRight-Click for Context Menu \nSelect and change properties in Right Panel") );
     setCursor(Qt::OpenHandCursor);
     this->setFlag( QGraphicsItem::ItemIsSelectable, true );
     
@@ -84,6 +86,8 @@ void Component::mousePressEvent(QGraphicsSceneMouseEvent* event)
         }
 
         QPropertyEditorWidget::self()->setObject( this );
+        PropertiesWidget::self()->setHelpText( m_help );
+        
         setCursor( Qt::ClosedHandCursor );
         grabMouse();
     }
@@ -94,7 +98,8 @@ void Component::mouseDoubleClickEvent( QGraphicsSceneMouseEvent* event )
     if ( event->button() == Qt::LeftButton )
     {
         QPropertyEditorWidget::self()->setObject( this );
-        QPropertyEditorWidget::self()->setVisible( true );
+        PropertiesWidget::self()->setHelpText( m_help );
+        //QPropertyEditorWidget::self()->setVisible( true );
     }
 }
 
@@ -153,10 +158,10 @@ void Component::contextMenu( QGraphicsSceneContextMenuEvent* event, QMenu* menu 
 {
     m_eventpoint = mapToScene( togrid(event->pos()) );
 
-    QAction* copyAction = menu->addAction(QIcon(":/copy.png"),"Copy");
+    QAction* copyAction = menu->addAction(QIcon(":/copy.png"),"Copy\tCtrl+C");
     connect( copyAction, SIGNAL( triggered()), this, SLOT(slotCopy()) );
 
-    QAction* removeAction = menu->addAction( QIcon( ":/remove.png"),"Remove" );
+    QAction* removeAction = menu->addAction( QIcon( ":/remove.png"),"Remove\tDel" );
     connect( removeAction, SIGNAL( triggered()), this, SLOT(slotRemove()) );
     
     QAction* propertiesAction = menu->addAction( QIcon( ":/properties.png"),"Properties" );
@@ -198,17 +203,13 @@ void Component::remove()
 {
     for( uint i=0; i<m_pin.size(); i++ )               // Remove connectors attached
         if( m_pin[i]->isConnected() ) m_pin[i]->connector()->remove();
-        
-    QPropertyEditorWidget::self()->removeObject( this );
-    Circuit::self()->compList()->removeOne( this );
-    Circuit::self()->removeItem( this );
-    this->deleteLater();
 }
 
 void Component::slotProperties()
 {
     QPropertyEditorWidget::self()->setObject( this );
-    MainWindow::self()->m_sidepanel->setCurrentIndex( 2 );
+    PropertiesWidget::self()->setHelpText( m_help );
+    MainWindow::self()->m_sidepanel->setCurrentIndex( 2 ); // Open Properties tab
 }
 
 void Component::H_flip()
@@ -263,7 +264,6 @@ void Component::updateLabel( Label* label, QString txt )
         
         setUnit( unit );
         setValue( value.toDouble() );
-        
     }
 }
 
@@ -347,14 +347,6 @@ void Component::setUnit( QString un )
     m_valLabel->setPlainText( QString::number(m_value)+m_mult+m_unit );
 }
 
-/*void Component::setIdLabel()
-{
-    m_idLabel->setPlainText( m_id );
-    
-    if( m_showId ) m_idLabel->setVisible( true );
-    else           m_idLabel->setVisible( false );
-}*/
-
 bool Component::showId()               { return m_showId; }
 void Component::setShowId( bool show ) 
 { 
@@ -419,6 +411,28 @@ QString Component::category()  { return m_category; }
 QIcon   Component::icon()      { return m_icon; }
 
 //bool Component::isChanged(){ return m_changed;}
+
+QString Component::getHelp( QString hfile )
+{
+    QString dfPath = SIMUAPI_AppPath::self()->availableDataFilePath( hfile );
+
+    QFile file( dfPath );
+    
+    if( !file.open(QFile::ReadOnly | QFile::Text) )
+    {
+        MessageBoxNB( "Component::loadHelp",
+                  tr("Cannot read Help file:\n%1:\n%2.").arg(dfPath).arg(file.errorString()) );
+          return m_noHelpMsg;
+    }
+    QTextStream s1( &file );
+    
+    QString help;
+    help.append(s1.readAll());
+
+    file.close();
+    
+    return help;
+}
 
 void Component::paint( QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget )
 {
@@ -513,7 +527,7 @@ void Label::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 }
 
 void Label::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
-{
+{qDebug() << "Label::contextMenuEvent";
     event->accept();
     QMenu menu;
 

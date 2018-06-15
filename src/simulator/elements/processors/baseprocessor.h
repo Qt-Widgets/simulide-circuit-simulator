@@ -4,7 +4,7 @@
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
+ *   the Free Software Foundation; either version 3 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
  *   This program is distributed in the hope that it will be useful,       *
@@ -65,6 +65,7 @@ class MAINMODULE_EXPORT BaseProcessor : public QObject
         virtual void uartIn( uint32_t value );
         
         virtual void initialized();
+        virtual QStringList getRegList() { return m_regList; }
     
     protected:
  static BaseProcessor* m_pSelf;
@@ -80,6 +81,7 @@ class MAINMODULE_EXPORT BaseProcessor : public QObject
         unsigned long m_nextCycle;
 
         RamTable* m_ramTable;
+        QStringList m_regList;
         QHash<QString, int> m_regsTable;     // int max 32 bits
         QHash<QString, float> m_floatTable;  // float 32 bits
         QHash<QString, QString> m_typeTable;

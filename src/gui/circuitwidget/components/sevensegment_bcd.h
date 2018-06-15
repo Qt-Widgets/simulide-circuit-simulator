@@ -4,7 +4,7 @@
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
+ *   the Free Software Foundation; either version 3 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
  *   This program is distributed in the hope that it will be useful,       *
@@ -22,10 +22,10 @@
 
 #include "itemlibrary.h"
 #include "logiccomponent.h"
-#include "e-logic_device.h"
+#include "e-bcdto7s.h"
 
 
-class MAINMODULE_EXPORT SevenSegmentBCD : public LogicComponent, public eLogicDevice
+class MAINMODULE_EXPORT SevenSegmentBCD : public LogicComponent, public eBcdTo7S
 {
     Q_OBJECT
 
@@ -36,20 +36,16 @@ class MAINMODULE_EXPORT SevenSegmentBCD : public LogicComponent, public eLogicDe
         static Component* construct( QObject* parent, QString type, QString id );
         static LibraryItem *libraryItem();
 
-        void initialize();
         void resetState();
         void updateStep();
         void remove();
         
-        void setVChanged();
 
         void paint( QPainter *p, const QStyleOptionGraphicsItem *option, QWidget *widget );
 
     private:
         int m_origx;
         int m_origy;
-        
-        std::vector<bool> m_outValue;
 };
 
 #endif

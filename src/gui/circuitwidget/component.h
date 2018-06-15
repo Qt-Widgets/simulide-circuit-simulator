@@ -4,7 +4,7 @@
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
+ *   the Free Software Foundation; either version 3 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
  *   This program is distributed in the hope that it will be useful,       *
@@ -102,6 +102,8 @@ class MAINMODULE_EXPORT Component : public QObject, public QGraphicsItem
         void setValLabelPos();
         
         void updateLabel( Label* label, QString txt );
+        
+        QString getHelp( QString file );
 
         QString itemType();
         QString category();
@@ -156,6 +158,10 @@ class MAINMODULE_EXPORT Component : public QObject, public QGraphicsItem
         QString m_id;
         QString m_type;
         QString m_category;
+        
+ static QString m_noHelpMsg;
+        QString* m_help;
+        
         QIcon   m_icon;
         QColor  m_color;
         QRectF  m_area;         // bounding rect

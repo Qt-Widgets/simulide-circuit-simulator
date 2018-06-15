@@ -54,3 +54,4 @@ class MAINMODULE_EXPORT eDiode : public eResistor
 };
 #endif
 
+

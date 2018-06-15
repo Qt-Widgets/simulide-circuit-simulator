@@ -4,7 +4,7 @@
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
+ *   the Free Software Foundation; either version 3 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
  *   This program is distributed in the hope that it will be useful,       *
@@ -97,13 +97,23 @@ void ToggleSwitch::initialize()
 
     m_ePin[ 0 ]->setEnode( node );
     m_ePin[ 3 ]->setEnode( node );
-        
-    m_ePin[0]->setEnodeComp( m_ePin[1]->getEnode() );
-    m_ePin[1]->setEnodeComp( m_ePin[0]->getEnode() );
-    m_ePin[2]->setEnodeComp( m_ePin[3]->getEnode() );
-    m_ePin[3]->setEnodeComp( m_ePin[2]->getEnode() );
     
-    for( int i=0; i<4; i++ ) m_ePin[i]->stampAdmitance( 1 ); // Restart circuit afther switch closed issue
+    eNode* node0 = m_ePin[0]->getEnode();
+    eNode* node1 = m_ePin[1]->getEnode();
+    eNode* node2 = m_ePin[2]->getEnode();
+    eNode* node3 = m_ePin[3]->getEnode();
+    
+    if( node0 ) node0->setSwitched( true );
+    if( node1 ) node1->setSwitched( true );
+    if( node2 ) node2->setSwitched( true );
+    if( node3 ) node3->setSwitched( true );
+        
+    m_ePin[0]->setEnodeComp( node1 );
+    m_ePin[1]->setEnodeComp( node0 );
+    m_ePin[2]->setEnodeComp( node3 );
+    m_ePin[3]->setEnodeComp( node2 );
+    
+    //for( int i=0; i<4; i++ ) m_ePin[i]->stampAdmitance( 1 ); // Restart circuit afther switch closed issue
 
     m_changed = true;
     updateStep();
@@ -113,13 +123,13 @@ void ToggleSwitch::updateStep()
 {
     if( m_changed )
     {
-        double admit0 = 1e-6;
+        double admit0 = 0;
         double admit1 = 1e3;
 
         if( m_closed ) 
         {
             admit0 = 1e3;
-            admit1 = 1e-6;
+            admit1 = 0;
         }
 
         m_ePin[0]->stampAdmitance( admit0 );
